@@ -7,7 +7,7 @@ MODELS := biocro clm45 dalec ed fates gday jules linkages \
 
 MODULES := allometry assim.batch assim.sequential benchmark \
 				 data.atmosphere data.hydrology data.land \
-				 data.mining data.remote emulator meta.analysis \
+				 data.remote emulator meta.analysis \
 				 photosynthesis priors rtm uncertainty
 
 SHINY := $(dir $(wildcard shiny/*/.))
