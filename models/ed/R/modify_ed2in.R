@@ -131,7 +131,7 @@ modify_ed2in <- function(ed2in, ...,
       .z <- PEcAn.utils::match_file(veg_prefix, suffix = "site", expect = 1)
     }
     ed2in[["SFILIN"]] <- normalizePath(veg_prefix, mustWork = FALSE)
-    ed2in[["IED_INIT_MODE"]] <- 3
+    ed2in[["IED_INIT_MODE"]] <- 6
     ed_veg <- read_ed_veg(veg_prefix, latitude = latitude, longitude = longitude)
     ed2in[["POI_LAT"]] <- ed_veg$latitude
     ed2in[["POI_LON"]] <- ed_veg$longitude

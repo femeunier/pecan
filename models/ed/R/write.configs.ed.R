@@ -287,10 +287,12 @@ write.config.ED2 <- function(trait.values, settings, run.id, defaults = settings
         PEcAn.logger::logger.severe("ED2 sites/pss/ files have different prefix")
       } else {
         # sites and pass same prefix name, case 3
-        value <- 3
+        value <- 6
       }
       
     }
+    #print('-------------------------------here')
+    #print(value)
     ed2in.text <- modify_ed2in(
       ed2in.text,
       IED_INIT_MODE = value,
