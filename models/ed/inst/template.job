@@ -50,6 +50,12 @@ if [ ! -e "@OUTDIR@/history.xml" ]; then
   echo "require (PEcAn.ED2)
 model2netcdf.ED2('@OUTDIR@', @SITE_LAT@, @SITE_LON@, '@START_DATE@', '@END_DATE@', @PFT_NAMES@)
 " | R --vanilla
+
+  echo "source('/data/gent/vo/000/gvo00074/felicien/R/saveED2_Q2R.r')
+saveED2_Q2R('@OUTDIR@','@START_DATE@', '@END_DATE@')
+" | R --vanilla
+
+
 fi
 
 # copy readme with specs to output

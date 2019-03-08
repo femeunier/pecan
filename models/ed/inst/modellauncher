@@ -1,0 +1,13 @@
+#!/bin/bash -l
+#PBS -l nodes=1:ppn=2
+#PBS -l walltime=1:00:00
+#PBS -o /user/data/gent/gvo000/gvo00074/pecan/log/stdout.$PBS_JOBID
+#PBS -e /user/data/gent/gvo000/gvo00074/pecan/log/stderr.$PBS_JOBID
+
+module load worker/1.6.8-intel-2018a
+
+JOBID="${PBS_ARRAYID}"
+WD="/user/data/gent/gvo000/gvo00074"
+cd ${WD}/pecan/run/${JOBID}
+bash job.sh
+
