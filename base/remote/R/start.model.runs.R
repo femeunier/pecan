@@ -115,7 +115,7 @@ start.model.runs <- function(settings, write = TRUE, stop.on.error = TRUE) {
                         host = settings$host,  host_rundir = settings$host$rundir, host_outdir = settings$host$outdir,
                         stdout_log = "stdout.log", stderr_log = "stderr.log", job_script = "job.sh")
       PEcAn.logger::logger.debug("JOB.SH submit status:", out)
-      jobids[run] <- qsub_get_jobid(out = out, qsub.jobid = settings$host$qsub.jobid, stop.on.error = stop.on.error)
+      jobids[run] <- qsub_get_jobid(out = out[length(out)], qsub.jobid = settings$host$qsub.jobid, stop.on.error = stop.on.error)
 
     } else {
       # if qsub option is not invoked.  just start model runs in serial.
@@ -163,9 +163,7 @@ start.model.runs <- function(settings, write = TRUE, stop.on.error = TRUE) {
         }
       }
    }
-
     if (is_qsub) {
-      
       for (run in run_list){
         if (run %in% job_modellauncher) {
           out <- start_qsub(run = run, qsub_string = settings$host$qsub, rundir = settings$rundir,
@@ -175,7 +173,7 @@ start.model.runs <- function(settings, write = TRUE, stop.on.error = TRUE) {
         }
         # HACK: Code below gets 'run' from names(jobids) so need an entry for each run.
         # But when using modellauncher all runs have the same jobid
-        jobids[run] <- sub(settings$host$qsub.jobid, "\\1", out[5])
+        jobids[run] <- sub(settings$host$qsub.jobid, "\\1", out[length(out)])
       }
 
   
