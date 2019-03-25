@@ -487,10 +487,9 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, ...){
                row, yr)  ## Evap
     out <- add(getHdf5Data(ncT, "FMEAN_QRUNOFF_PY"), 45, row, yr)  ## Qs
     out <- add(getHdf5Data(ncT, "BASEFLOW"), 46, row, yr)  ## Qsb
-    
     out <- add(getHdf5Data(ncT, "FMEAN_ROOT_RESP_PY") + getHdf5Data(ncT, "FMEAN_ROOT_GROWTH_RESP_PY") + 
                  getHdf5Data(ncT, "FMEAN_RH_PY"), 47, row, yr)  ## SoilResp
-    out <- add(getHdf5Data(ncT, "FMEAN_LAI_LIANA_PY"), 48, row, yr)  ## Liana_LAI     
+    out <- add(getHdf5Data(ncT, "FMEAN_ZRWU_PY"), 48, row, yr)  ## Liana_LAI     
     out$SLZ <- slzdata
     
   } else {
@@ -630,7 +629,7 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, ...){
     out <- add(getHdf5Data(ncT, "BASEFLOW"), 46, row, yr)  ## Qsb     
     out <- add(getHdf5Data(ncT, "AVG_ROOT_RESP") + getHdf5Data(ncT, "AVG_ROOT_MAINTENANCE") + 
                  getHdf5Data(ncT, "AVG_HTROPH_RESP"), 47, row, yr)  ## SoilResp
-    out <- add(getHdf5Data(ncT, "FMEAN_LAI_LIANA_PY"), 48, row, yr)  ## Liana_LAI     
+    out <- add(getHdf5Data(ncT, "FMEAN_ZRWU_PY"), 48, row, yr)  ## Liana_LAI     
     out$SLZ <- slzdata
   }
   
@@ -812,9 +811,8 @@ put_T_values <- function(yr, nc_var, out, lat, lon, begins, ends, ...){
   out <- conversion(47, yr2s)  ## kg C m-2 yr-1 -> kg C m-2 s-1
   nc_var[[s + 47]] <- ncdf4::ncvar_def("SoilResp", units = "kg C m-2 s-1", dim = list(lon, lat, t), missval = -999, 
                                     longname = "Soil Respiration")
-
-  nc_var[[s + 48]] <- ncdf4::ncvar_def("Liana_LAI", units = "-", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Liana contribution to LAI")
+  nc_var[[s + 48]] <- ncdf4::ncvar_def("zRWU", units = "m", dim = list(lon, lat, t), missval = -999, 
+                                     longname = "Mean depth of uptake")
   # Remove SLZ from output before finalizing list.  replace with time_bounds
   if(!is.null(out[["SLZ"]])){
     out[["SLZ"]] <- NULL
