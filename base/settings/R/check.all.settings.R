@@ -344,7 +344,7 @@ check.settings <- function(settings, force=FALSE) {
       PEcAn.logger::logger.severe("qsub.extra not specified, can not launch in parallel environment.")
     }
     if (is.null(settings$host$modellauncher$mpirun)) {
-      #settings$host$modellauncher$mpirun <- "mpirun"
+      settings$host$modellauncher$mpirun <- "mpirun"
       PEcAn.logger::logger.info("mpirun not specified using default value :", settings$host$modellauncher$mpirun)
     }
   }
