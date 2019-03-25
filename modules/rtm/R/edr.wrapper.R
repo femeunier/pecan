@@ -55,6 +55,7 @@ EDR <- function(img_path,
                 clean = FALSE,
                 stderr = TRUE,
                 verbose_error = TRUE,
+		patches = FALSE,
                 ...) {
 
   ed2in_path <- normalizePath(ed2in_path, mustWork = TRUE)
@@ -175,7 +176,19 @@ EDR <- function(img_path,
   }
 
   # Analyze output
-  albedo <- get.EDR.output(output.path)
+
+  if (!patches) {
+    albedo <- get.EDR.output(output.path)
+  } else {
+    output.path_patch=paste(output.path,"patches",sep='/')
+    Npatches <- as.numeric(readLines(con = file.path(output.path,"patches/Npatches.dat")))[[1]]
+    albedo=matrix(NA,Npatches,length(par.wl)+length(nir.wl))
+    for (ipatch in seq(1,Npatches)){
+      albedo[ipatch,]<- get.EDR.output(output.path_patch,ipatch)
+    }
+  }
+
+  
   # Optionally, clean up all generated files
   if(clean) {
     delete.files <- file.remove(files_list)
@@ -191,9 +204,15 @@ EDR <- function(img_path,
 #'
 #' @param path Path to directory containing `albedo_par/nir.dat` files
 #' @export
-get.EDR.output <- function(path = getwd()) {
-  alb.par <- as.matrix(read.table(file.path(path, "albedo_par.dat")))[1, ]
-  alb.nir <- as.matrix(read.table(file.path(path, "albedo_nir.dat")))[1, ]
+get.EDR.output <- function(path = getwd(),patch = NULL) {
+
+  if (is.null(patch)){
+     alb.par <- as.matrix(read.table(file.path(path, "albedo_par.dat")))[1, ]
+     alb.nir <- as.matrix(read.table(file.path(path, "albedo_nir.dat")))[1, ]
+  } else {
+     alb.par <- as.matrix(read.table(file.path(path, paste("albedo_par",patch,".dat",sep=''))))[1, ]
+     alb.nir <- as.matrix(read.table(file.path(path, paste("albedo_nir",patch,".dat",sep=''))))[1, ]
+  }
   albedo <- c(alb.par, alb.nir)
   return(albedo)
 }

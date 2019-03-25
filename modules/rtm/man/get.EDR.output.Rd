@@ -4,7 +4,7 @@
 \alias{get.EDR.output}
 \title{Read EDR output}
 \usage{
-get.EDR.output(path = getwd())
+get.EDR.output(path = getwd(), patch = NULL)
 }
 \arguments{
 \item{path}{Path to directory containing \code{albedo_par/nir.dat} files}

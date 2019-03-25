@@ -12,7 +12,7 @@ EDR(img_path, ed2in_path, spectra_list, trait.values,
   output.path = dirname(normalizePath(ed2in_path, mustWork = TRUE)),
   settings = list(model = list(revision = "git", config.header = NULL)),
   singularity_args = list(), clean = FALSE, stderr = TRUE,
-  verbose_error = TRUE, ...)
+  verbose_error = TRUE, patches = FALSE, ...)
 }
 \arguments{
 \item{img_path}{Path to Singularity container (usually a \code{.simg} file)}

@@ -15,6 +15,7 @@ setup_edr <- function(ed2in, output_dir,
                                              ed2in[["IMONTHA"]],
                                              ed2in[["IDATEA"]],
                                              12, 00, 00, tz = "UTC"),
+		      patches = FALSE,
                       ...) {
 
   hour <- as.numeric(strftime(datetime, "%H", tz = "UTC"))
@@ -27,6 +28,11 @@ setup_edr <- function(ed2in, output_dir,
   }
 
   dir.create(output_dir, showWarnings = FALSE)
+
+  if (patches){
+    dir.create(file.path(output_dir,'patches'), showWarnings = FALSE)
+  }
+
   nextday <- as.POSIXct(datetime, tz = "UTC") + 86400   # Add one day
 
   history_prefix <- EDR.preprocess.history(

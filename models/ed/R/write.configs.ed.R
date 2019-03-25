@@ -255,7 +255,6 @@ write.config.ED2 <- function(trait.values, settings, run.id, defaults = settings
   # Assumes pattern 'DIR/PREFIX.lat<REMAINDER OF FILENAME>'
   # Slightly overcomplicated to avoid error if path name happened to contain .lat'
   
-  
   # when pss or css not exists, case 0
   if (is.null(settings$run$inputs$pss$path) | is.null(settings$run$inputs$css$path)) {
     ed2in.text <- modify_ed2in(
@@ -276,7 +275,7 @@ write.config.ED2 <- function(trait.values, settings, run.id, defaults = settings
       PEcAn.logger::logger.severe("ED2 css/pss/ files have different prefix")
     }
     # pss and css are both present
-    value <- 2
+    value <- 6
     # site exists
     if (!is.null(settings$run$inputs$site$path)) {
       prefix.site <- sub(lat_rxp, "", settings$run$inputs$site$path)

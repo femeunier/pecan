@@ -5,7 +5,8 @@
 \title{Setup EDR run}
 \usage{
 setup_edr(ed2in, output_dir, datetime = ISOdatetime(ed2in[["IYEARA"]],
-  ed2in[["IMONTHA"]], ed2in[["IDATEA"]], 12, 0, 0, tz = "UTC"), ...)
+  ed2in[["IMONTHA"]], ed2in[["IDATEA"]], 12, 0, 0, tz = "UTC"),
+  patches = FALSE, ...)
 }
 \arguments{
 \item{ed2in}{ED2IN list object (see \link[PEcAn.ED2:read_ed2in]{PEcAn.ED2::read_ed2in}).}

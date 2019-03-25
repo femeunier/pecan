@@ -523,8 +523,8 @@ $ED_NL
    !---------------------------------------------------------------------------------------!
    NL%SLZ     =   -8.000,-6.959,-5.995,-5.108,-4.296,-3.560,-2.897,-2.307,-1.789,-1.340,
                   -0.961,-0.648,-0.400,-0.200,-0.150,-0.10
-   NL%SLMSTR  =    1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.000,
-                   1.000, 1.000, 1.000, 1.000, 1.000, 1.000
+   NL%SLMSTR  =    1.500, 1.500, 1.500, 1.500, 1.500, 1.500, 1.500, 1.500, 1.500, 1.500,
+                   1.500, 1.500, 1.500, 1.500, 1.500, 1.500
    NL%STGOFF  =    0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
                    0.000, 0.000, 0.000, 0.000, 0.000, 0.000
    !---------------------------------------------------------------------------------------!
@@ -1339,7 +1339,7 @@ $ED_NL
    !                              TREEFALL_DISTURBANCE_RATE is internally adjusted so the  !
    !                              average patch age is still 1/TREEFALL_DISTURBANCE_RATE   !
    !---------------------------------------------------------------------------------------!
-   NL%TREEFALL_DISTURBANCE_RATE  = -0.014 ! If you switch IALLOM=3, then it’s also a good
+   NL%TREEFALL_DISTURBANCE_RATE  = 0.0 ! If you switch IALLOM=3, then it’s also a good
                                           !     idea to switch this to -0.014, so the
                                           !     PFT-dependent, but density-independent
                                           !     mortality rates aren’t too high for pioneers
