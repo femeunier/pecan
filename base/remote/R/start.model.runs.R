@@ -44,10 +44,6 @@ start.model.runs <- function(settings, write = TRUE, stop.on.error = TRUE) {
   is_rabbitmq <- !is.null(settings$host$rabbitmq)
   is_modellauncher <- !is.null(settings$host$modellauncher)
   
-<<<<<<< HEAD
-=======
-  # Check if Njobmax tag exists in seetings
->>>>>>> bfba710338252615d28aafbca78494426a7d0881
   if (is_modellauncher){
     if (!is.null(settings$host$modellauncher$Njobmax)){
       Njobmax <- settings$host$modellauncher$Njobmax
@@ -58,10 +54,7 @@ start.model.runs <- function(settings, write = TRUE, stop.on.error = TRUE) {
     compt_run_modellauncher <- 1
     job_modellauncher <- list()
   }
-<<<<<<< HEAD
 
-=======
->>>>>>> bfba710338252615d28aafbca78494426a7d0881
 
   # loop through runs and either call start run, or launch job on remote machine
   jobids <- list()
@@ -142,11 +135,6 @@ start.model.runs <- function(settings, write = TRUE, stop.on.error = TRUE) {
       pbi <- pbi + 1
       setTxtProgressBar(pb, pbi)
     }
-<<<<<<< HEAD
-=======
-    
-    # Check if compt_run has reached Njobmax
->>>>>>> bfba710338252615d28aafbca78494426a7d0881
     if (is_modellauncher){
       compt_run <- compt_run + 1
       if (compt_run == Njobmax){
@@ -156,31 +144,12 @@ start.model.runs <- function(settings, write = TRUE, stop.on.error = TRUE) {
         jobfile <- NULL
       }      
     }
-<<<<<<< HEAD
-=======
     
->>>>>>> bfba710338252615d28aafbca78494426a7d0881
   } # end loop over runs
   close(pb)
 
   # need to actually launch the model launcher
   if (is_modellauncher) {
-<<<<<<< HEAD
-    if (compt_run != 0){
-      close(jobfile)
-    }
-
-    if (!is_local) {
-      for (run in run_list){
-        if (run %in% job_modellauncher) {
-          # copy launcher and joblist
-          PEcAn.remote::remote.copy.to(settings$host, file.path(settings$rundir,
-                                                                format(run, scientific = FALSE)), settings$host$rundir, delete = TRUE)
-          
-        }
-      }
-   }
-=======
     
     # Only close if not already closed
     if (compt_run != 0){
@@ -197,7 +166,6 @@ start.model.runs <- function(settings, write = TRUE, stop.on.error = TRUE) {
         }
       }
     }
->>>>>>> bfba710338252615d28aafbca78494426a7d0881
     if (is_qsub) {
       for (run in run_list){
         if (run %in% job_modellauncher) {
@@ -210,12 +178,8 @@ start.model.runs <- function(settings, write = TRUE, stop.on.error = TRUE) {
         # But when using modellauncher all runs have the same jobid
         jobids[run] <- sub(settings$host$qsub.jobid, "\\1", out[length(out)])
       }
-<<<<<<< HEAD
 
   
-=======
-      
->>>>>>> bfba710338252615d28aafbca78494426a7d0881
     } else {
       out <- start_serial(run = run, host = settings$host, rundir = settings$rundir,  host_rundir = settings$host$rundir,
                           job_script = "launcher.sh")
@@ -239,7 +203,8 @@ start.model.runs <- function(settings, write = TRUE, stop.on.error = TRUE) {
 
   while (length(jobids) > 0) {
     Sys.sleep(10)
-    for (run in names(jobids)) {
+    for (irun in unique(jobids)) {
+      run = names(which(jobids == irun)[1])
       run_id_string <- format(run, scientific = FALSE)
 
       # check to see if job is done
@@ -274,7 +239,8 @@ start.model.runs <- function(settings, write = TRUE, stop.on.error = TRUE) {
 
         # Write finish time to database
         if (is_modellauncher) {
-          for (x in run_list) {
+          xruns <- jobids[which(jobids == irun)]
+          for (x in xruns) {
             stamp_finished(con = dbcon, run = x)
           }
         } else {
@@ -289,9 +255,8 @@ start.model.runs <- function(settings, write = TRUE, stop.on.error = TRUE) {
 
         # remove job
         if (is_modellauncher) {
-          for (x in run_list) {
-            jobids[x] <- NULL
-          }          
+          jobids<-jobids %>% 
+            purrr::discard(~ .x==jobids[run])
         } else {
           jobids[run] <- NULL
         }
