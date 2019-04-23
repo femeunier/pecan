@@ -489,7 +489,8 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, ...){
     out <- add(getHdf5Data(ncT, "BASEFLOW"), 46, row, yr)  ## Qsb
     out <- add(getHdf5Data(ncT, "FMEAN_ROOT_RESP_PY") + getHdf5Data(ncT, "FMEAN_ROOT_GROWTH_RESP_PY") + 
                  getHdf5Data(ncT, "FMEAN_RH_PY"), 47, row, yr)  ## SoilResp
-    out <- add(getHdf5Data(ncT, "FMEAN_ZRWU_PY"), 48, row, yr)  ## Liana_LAI     
+    out <- add(getHdf5Data(ncT, "FMEAN_ZRWU_PY"), 48, row, yr)  ## Liana_LAI   
+    out <- add(getHdf5Data(ncT, "FMEAN_LAI_LIANA_PY"), 49, row, yr)  ## Liana_LAI   
     out$SLZ <- slzdata
     
   } else {
@@ -629,7 +630,8 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, ...){
     out <- add(getHdf5Data(ncT, "BASEFLOW"), 46, row, yr)  ## Qsb     
     out <- add(getHdf5Data(ncT, "AVG_ROOT_RESP") + getHdf5Data(ncT, "AVG_ROOT_MAINTENANCE") + 
                  getHdf5Data(ncT, "AVG_HTROPH_RESP"), 47, row, yr)  ## SoilResp
-    out <- add(getHdf5Data(ncT, "FMEAN_ZRWU_PY"), 48, row, yr)  ## Liana_LAI     
+    out <- add(getHdf5Data(ncT, "FMEAN_ZRWU_PY"), 48, row, yr)  ## Liana_LAI  
+    out <- add(getHdf5Data(ncT, "FMEAN_LAI_LIANA_PY"), 49, row, yr)  ## Liana_LAI  
     out$SLZ <- slzdata
   }
   
@@ -813,6 +815,8 @@ put_T_values <- function(yr, nc_var, out, lat, lon, begins, ends, ...){
                                     longname = "Soil Respiration")
   nc_var[[s + 48]] <- ncdf4::ncvar_def("zRWU", units = "m", dim = list(lon, lat, t), missval = -999, 
                                      longname = "Mean depth of uptake")
+  nc_var[[s + 49]] <- ncdf4::ncvar_def("LAI_Liana", units = "-", dim = list(lon, lat, t), missval = -999, 
+                                     longname = "Liana contribution to LAI")
   # Remove SLZ from output before finalizing list.  replace with time_bounds
   if(!is.null(out[["SLZ"]])){
     out[["SLZ"]] <- NULL
