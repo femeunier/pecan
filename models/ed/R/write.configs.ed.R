@@ -257,13 +257,30 @@ write.config.ED2 <- function(trait.values, settings, run.id, defaults = settings
   
   # when pss or css not exists, case 0
   if (is.null(settings$run$inputs$pss$path) | is.null(settings$run$inputs$css$path)) {
-    ed2in.text <- modify_ed2in(
-      ed2in.text,
-      IED_INIT_MODE = 0,
-      SFILIN = "",
-      add_if_missing = TRUE,
-      check_paths = check
-    )
+    if (is.null(settings$run$inputs$history)){
+	    ed2in.text <- modify_ed2in(
+	      ed2in.text,
+	      IED_INIT_MODE = 0,
+	      SFILIN = "",
+	      add_if_missing = TRUE,
+	      check_paths = check
+	    )
+     } else {
+           ed2in.text <- modify_ed2in(
+	      ed2in.text,
+	      IED_INIT_MODE = 6,
+	      SFILIN = settings$run$inputs$history$path,
+	      add_if_missing = TRUE,
+	      check_paths = check
+           )
+        # Change initial to history, SFILIN, ITIMEH, IDATEH, IMONTHH, IYEARH
+	hdate <- settings$run$inputs$history$hdate
+	settings$model$ed2in_tags$IYEARH <- lubridate::year(hdate)
+	settings$model$ed2in_tags$IMONTHH <- lubridate::month(hdate)
+	settings$model$ed2in_tags$IDATEH <- lubridate::day(hdate)
+	settings$model$ed2in_tags$ITIMEH <- 0
+	settings$model$ed2in_tags$RUNTYPE <- 'HISTORY'
+     }
   } else {
     lat_rxp <- "\\.lat.*lon.*\\.(css|pss|site)"
     prefix.css <- sub(lat_rxp, "", settings$run$inputs$css$path)
@@ -457,6 +474,7 @@ write.config.xml.ED2 <- function(settings, trait.values, defaults = settings$con
   }
 
   edtraits <- names(edhistory)
+
   data(pftmapping, package = 'PEcAn.ED2')
   
   ## Get ED2 specific model settings and put into output config xml file
@@ -466,6 +484,7 @@ write.config.xml.ED2 <- function(settings, trait.values, defaults = settings$con
   ## instance of name attribute 'pft'. Otherwise, AS assumes that names in defaults are already set
   ## to the corresponding PFT names.
   currentnames <- names(defaults)
+
   if (is.null(currentnames) | "pft" %in% currentnames) {
     newnames <- sapply(defaults, "[[", "name")
     newnames.notnull <- which(!sapply(newnames, is.null))
@@ -486,6 +505,7 @@ write.config.xml.ED2 <- function(settings, trait.values, defaults = settings$con
       } else {
         pft <- group
       }
+
 
       # This is the ED PFT number (1-17; see comments in ED2IN file
       # for PFT definitions). It is used to set any ED parameters that

@@ -324,9 +324,11 @@ check.settings <- function(settings, force=FALSE) {
       settings$host$qsub <- "qsub -V -N @NAME@ -o @STDOUT@ -e @STDERR@ -S /bin/bash"
       PEcAn.logger::logger.info("qsub not specified using default value :", settings$host$qsub)
     }
-    if (is.null(settings$host$qsub.jobid)) {
+    if (is.null(settings$host$qsub.jobid) && (settings$host$name != "hpc")) {
       settings$host$qsub.jobid <- "Your job ([0-9]+) .*"
       PEcAn.logger::logger.info("qsub.jobid not specified using default value :", settings$host$qsub.jobid)
+    } else if(settings$host$name == "hpc"){
+      settings$host$qsub.jobid <- ""
     }
     if (is.null(settings$host$qstat)) {
       settings$host$qstat <- "qstat -j @JOBID@ &> /dev/null || echo DONE"

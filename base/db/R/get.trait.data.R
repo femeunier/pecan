@@ -136,12 +136,15 @@ get.trait.data.pft <- function(pft, modeltype, dbfiles, dbcon, trait.names,
             PEcAn.logger::logger.error("can not find posterior file: ", file.path(files$file_path[[id]], files$file_name[[id]]))
           } else if (files$file_name[[id]] == pft_member_filename) {
             PEcAn.logger::logger.debug("Checking if pft membership has changed")
-            testme <- utils::read.csv(file = file.path(files$file_path[[id]], files$file_name[[id]]))
-            if (!check.lists(pft_members, testme, pft_member_filename)) {
-              foundallfiles <- FALSE
-              PEcAn.logger::logger.error("pft membership has changed: ", file.path(files$file_path[[id]], files$file_name[[id]]))
+	    file2load <- file.path(files$file_path[[id]], files$file_name[[id]])
+            if (!is.na(file.info(file2load)$size) & file.info(file2load)$size > 8){
+		    testme <- utils::read.csv(file = file2load)
+		    if (!check.lists(pft_members, testme, pft_member_filename)) {
+		      foundallfiles <- FALSE
+		      PEcAn.logger::logger.error("pft membership has changed: ", file.path(files$file_path[[id]], files$file_name[[id]]))
+		    }
+		    remove(testme)
             }
-            remove(testme)
           } else if (files$file_name[[id]] == "prior.distns.Rdata") {
             PEcAn.logger::logger.debug("Checking if priors have changed")
             prior.distns.tmp <- prior.distns

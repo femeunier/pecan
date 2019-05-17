@@ -19,7 +19,7 @@
 #'   remote.copy.from(host, '/tmp/kooper', '/tmp/geo.tmp', delete=TRUE)
 #' }
 remote.copy.from <- function(host, src, dst, delete = FALSE, stderr = FALSE) {
-  args <- c("-az", "-q","--exclude=*-Q-*","--exclude=*-S-*")
+  args <- c("-az", "-q","--exclude=*-Q-*","--exclude=*-S-*","--exclude=*-T-*")
   if (as.logical(delete)) {
     args <- c(args, "--delete")
   }
