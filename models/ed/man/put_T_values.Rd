@@ -4,7 +4,7 @@
 \alias{put_T_values}
 \title{Function for put -T- values to nc_var list}
 \usage{
-put_T_values(yr, nc_var, out, lat, lon, begins, ends, ...)
+put_T_values(yr, nc_var, out, lat, lon, begins, ends, pft_names, ...)
 }
 \description{
 Function for put -T- values to nc_var list

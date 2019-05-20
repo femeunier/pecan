@@ -4,7 +4,8 @@
 \alias{read_T_files}
 \title{Function for reading -T- files}
 \usage{
-read_T_files(yr, yfiles, tfiles, outdir, start_date, end_date, ...)
+read_T_files(yr, yfiles, tfiles, outdir, start_date, end_date, pft_names,
+  ...)
 }
 \arguments{
 \item{yr}{the year being processed}

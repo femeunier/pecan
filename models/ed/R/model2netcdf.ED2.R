@@ -26,30 +26,30 @@
 ## refactored by Istem Fer on 03/2018
 ## further modified by S. Serbin 09/2018
 ##'
-model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date,
+model2netcdf.ED2 <- function(outdir, sitelat, sitelon ,start_date,
                              end_date, pft_names = NULL) {
-
+  
   start_year <- lubridate::year(start_date)
   end_year   <- lubridate::year(end_date)
-
+  
   flist <- list()
   flist[["-T-"]] <- dir(outdir, "-T-") # tower files
   flist[["-E-"]] <- dir(outdir, "-E-") # monthly files
-
+  
   # check if there are files
   file.check <- sapply(flist, function (f) length(f) != 0)
-
+  
   if (!any(file.check)) {
-
+    
     # no output files
     PEcAn.logger::logger.warn("WARNING: No output files found for :", outdir)
     return(NULL)
-
+    
   } else {
-
+    
     # which output files are there
     ed_res_flag <- names(flist)[file.check]
-
+    
     # extract year info from the file names
     ylist <- lapply(ed_res_flag, function(f) {
       yr <- rep(NA, length(flist[[f]]))
@@ -60,14 +60,14 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date,
       }
       return(yr)
     })
-
+    
     names(ylist) <- ed_res_flag
   }
-
+  
   # prepare list to collect outputs
   out_list <- vector("list", length(ed_res_flag))
   names(out_list) <- ed_res_flag
-
+  
   # if run failed there might be less years, no output case is handled above
   # we can process whatever is there
   # but of course this upsets ensemble.ts because the outputs are not of
@@ -90,18 +90,22 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date,
       PEcAn.logger::logger.info("This is an ensemble run.
                                 Not processing anything.")
       return(NULL)
-      } else {
-        PEcAn.logger::logger.info("This is not an ensemble run.
-                                  Processing existing outputs.")
-        end_year <- max(year_check)
-      }
+    } else {
+      PEcAn.logger::logger.info("This is not an ensemble run.
+                                Processing existing outputs.")
+      end_year <- max(year_check)
     }
-
+  }
+  
+  
+  
+  
+  
   # ----- start loop over years
   for (y in start_year:end_year) {
-
+    
     PEcAn.logger::logger.info(paste0("----- Processing year: ", y))
-
+    
     # ----- read values from ED output files
     for (i in seq_along(out_list)) {
       rflag <- ed_res_flag[i]
@@ -111,20 +115,20 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date,
                                outdir, start_date, end_date,
                                pft_names)
     }
-
+    
     # generate start/end dates for processing
     if (y == strftime(start_date, "%Y")) {
       begin_date <- base::as.Date(strftime(start_date))
     } else {
       begin_date <- base::as.Date(paste0(y, "-01-01"))
     }
-
+    
     if (y == strftime(end_date, "%Y")) {
       ends <- as.numeric(strftime(end_date, "%j"))
     } else {
       ends <- as.numeric(strftime(paste0(y, "-12-31"), "%j"))
     }
-
+    
     # create lat/long nc variables
     lat <- ncdf4::ncdim_def("lat", "degrees_north",
                             vals = as.numeric(sitelat),
@@ -132,7 +136,7 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date,
     lon <- ncdf4::ncdim_def("lon", "degrees_east",
                             vals = as.numeric(sitelon),
                             longname = "station_longitude")
-
+    
     # ----- put values to nc_var list
     nc_var <- list()
     for (i in seq_along(out_list)) {
@@ -142,14 +146,14 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date,
       put_out <- fcn(yr = y, nc_var = nc_var, out = out_list[[rflag]],
                      lat = lat, lon = lon, begins = begin_date,
                      ends = ends, pft_names)
-
+      
       nc_var            <- put_out$nc_var
       out_list[[rflag]] <- put_out$out
     }
-
+    
     # ----- write ncdf files
     PEcAn.logger::logger.info("*** Writing netCDF file ***")
-
+    
     out <- unlist(out_list, recursive = FALSE)
     nc <- ncdf4::nc_create(file.path(outdir, paste(y, "nc", sep = ".")),
                            nc_var)
@@ -169,10 +173,10 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date,
     }
     close(varfile)
     ncdf4::nc_close(nc)
-
+    
   } # end year-loop
-
-} # model2netcdf.ED2
+  
+  } # model2netcdf.ED2
 ##-------------------------------------------------------------------------------------------------#
 
 
@@ -189,10 +193,15 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date,
 ##' @param yr the year being processed
 ##' @param yfiles the years on the filenames, will be used to matched tfiles for that year
 ##' @export
-read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, ...){
-
+read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, pft_names, ...){
+  
   PEcAn.logger::logger.info(paste0("*** Reading -T- file ***"))
-
+  
+  data(pftmapping, package = "PEcAn.ED2")
+  pft_num <- sapply(pft_names, function(x) pftmapping$ED[pftmapping$PEcAn == x]) 
+  pfts <- ncdf4::ncdim_def(name = "pft", units = "unitless", vals = pft_num, 
+                           longname = "Plant Functional Type", unlim = TRUE)
+  
   # add
   add <- function(dat, col, row, year) {
     ## data is always given for whole year, except it will start always at 0
@@ -207,7 +216,7 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, ...){
     } else {
       end <- as.numeric(strftime(paste0(year, "-12-31"), "%j")) * block
     }
-
+    
     dims <- dim(dat)
     if (is.null(dims)) {
       if (length(dat) == 1) {
@@ -223,9 +232,9 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, ...){
                                      array(dat, dim = (end - start)), 
                                      along = 1)
         }
-      } else {
-        PEcAn.logger::logger.warn("expected a single value")
-      }
+        } else {
+          PEcAn.logger::logger.warn("expected a single value")
+        }
     } else if (length(dims) == 1) {
       dat <- dat[1:(end - start)]
       if (length(out) < col) {
@@ -238,36 +247,36 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, ...){
         }
         out[[col]] <- abind::abind(out[[col]], dat, along = 1)
       }
-    } else if (length(dims) == 2) {
-      dat <- t(dat)
-      dims <- dim(dat)
-      dat <- dat[1:(end - start), ]
-      if (length(out) < col) {
-        out[[col]] <- dat
-      } else {
-        if (start != 0) {
-          PEcAn.logger::logger.warn("start date is not 0 this year, 
-                                    but data already exists in this 
-                                    col", col, "how is this possible?")
+      } else if (length(dims) == 2) {
+        dat <- t(dat)
+        dims <- dim(dat)
+        dat <- dat[1:(end - start), ]
+        if (length(out) < col) {
+          out[[col]] <- dat
+        } else {
+          if (start != 0) {
+            PEcAn.logger::logger.warn("start date is not 0 this year, 
+                                      but data already exists in this 
+                                      col", col, "how is this possible?")
+          }
+          out[[col]] <- abind::abind(out[[col]], dat, along = 1)
+          }
+        } else {
+          PEcAn.logger::logger.debug("-------------------------------------------------------------")
+          PEcAn.logger::logger.debug("col=", col)
+          PEcAn.logger::logger.debug("length=", length(dat))
+          PEcAn.logger::logger.debug("start=", start)
+          PEcAn.logger::logger.debug("end=", end)
+          PEcAn.logger::logger.debug("dims=", dims)
+          PEcAn.logger::logger.warn("Don't know how to handle larger arrays yet.")
         }
-        out[[col]] <- abind::abind(out[[col]], dat, along = 1)
-      }
-    } else {
-      PEcAn.logger::logger.debug("-------------------------------------------------------------")
-      PEcAn.logger::logger.debug("col=", col)
-      PEcAn.logger::logger.debug("length=", length(dat))
-      PEcAn.logger::logger.debug("start=", start)
-      PEcAn.logger::logger.debug("end=", end)
-      PEcAn.logger::logger.debug("dims=", dims)
-      PEcAn.logger::logger.warn("Don't know how to handle larger arrays yet.")
-    }
     
     ## finally make sure we use -999 for invalid values
     out[[col]][is.null(out[[col]])] <- -999
     out[[col]][is.na(out[[col]])] <- -999
     
     return(out)
-  } # end add-function
+      } # end add-function
   
   
   getHdf5Data <- function(nc, var) {
@@ -284,7 +293,7 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, ...){
       return("Git")
     }
   }
-
+  
   # note that there is always one Tower file per year
   ysel <- which(yr == yfiles)
   
@@ -309,7 +318,7 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, ...){
   block <- ifelse(lubridate::leap_year(yr) == TRUE,
                   ncT$dim$phony_dim_0$len / 366, # a leaper 
                   ncT$dim$phony_dim_0$len / 365) # non leap
-
+  
   PEcAn.logger::logger.info(paste0("Output interval: ", 86400 / block, " sec"))
   
   
@@ -490,7 +499,18 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, ...){
     out <- add(getHdf5Data(ncT, "FMEAN_ROOT_RESP_PY") + getHdf5Data(ncT, "FMEAN_ROOT_GROWTH_RESP_PY") + 
                  getHdf5Data(ncT, "FMEAN_RH_PY"), 47, row, yr)  ## SoilResp
     out <- add(getHdf5Data(ncT, "FMEAN_ZRWU_PY"), 48, row, yr)  ## Liana_LAI   
-    out <- add(getHdf5Data(ncT, "FMEAN_LAI_LIANA_PY"), 49, row, yr)  ## Liana_LAI   
+    out <- add(getHdf5Data(ncT, "FMEAN_LAI_LIANA_PY"), 49, row, yr)  ## Liana_LAI
+    
+    # Var with pft dimension
+    vars <- c('FMEAN_TRANSP_PFT','FMEAN_GPP_PFT','FMEAN_NPP_PFT','FMEAN_zRWU_PFT')    
+    
+    for (ivar in seq(vars)){
+      temp <- getHdf5Data(ncT, vars[ivar])
+      temp <- temp[sort(pft_num),]
+      out <- add(temp, 49 + ivar, row, yr)  ## PFT transp 
+    }
+    
+    
     out$SLZ <- slzdata
     
   } else {
@@ -632,23 +652,39 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, ...){
                  getHdf5Data(ncT, "AVG_HTROPH_RESP"), 47, row, yr)  ## SoilResp
     out <- add(getHdf5Data(ncT, "FMEAN_ZRWU_PY"), 48, row, yr)  ## Liana_LAI  
     out <- add(getHdf5Data(ncT, "FMEAN_LAI_LIANA_PY"), 49, row, yr)  ## Liana_LAI  
+    out <- add(getHdf5Data(ncT, "FMEAN_TRANSP_PFT"), 50, row, yr)  ## PFT transp 
+
+    # Var with pft dimension
+    vars <- c('FMEAN_TRANSP_PFT','FMEAN_GPP_PFT','FMEAN_NPP_PFT','FMEAN_zRWU_PFT')    
+    
+    for (ivar in seq(vars)){
+      temp <- getHdf5Data(ncT, vars[ivar])
+      temp <- temp[sort(pft_num),]
+      out <- add(temp, 49 + ivar, row, yr)  ## PFT transp 
+    }
+
     out$SLZ <- slzdata
   }
   
   ncdf4::nc_close(ncT)
-
+  
   return(out)
   
-} # read_T_files
+  } # read_T_files
 
 
 ##-------------------------------------------------------------------------------------------------#
 
 ##' Function for put -T- values to nc_var list
 ##' @export
-put_T_values <- function(yr, nc_var, out, lat, lon, begins, ends, ...){
+put_T_values <- function(yr, nc_var, out, lat, lon, begins, ends, pft_names, ...){
   
   s <- length(nc_var)
+  
+  data(pftmapping, package = "PEcAn.ED2")
+  pft_num <- sapply(pft_names, function(x) pftmapping$ED[pftmapping$PEcAn == x]) 
+  pfts <- ncdf4::ncdim_def(name = "pft", units = "unitless", vals = pft_num, 
+                           longname = "Plant Functional Type", unlim = TRUE)
   
   ## Conversion factor for umol C -> kg C
   Mc <- 12.017  #molar mass of C, g/mol
@@ -710,113 +746,121 @@ put_T_values <- function(yr, nc_var, out, lat, lon, begins, ends, ...){
   # currently unused
   #dims  <- list(lon = lon, lat = lat, time = t)
   #dimsz <- list(lon = lon, lat = lat, time = t, nsoil = zg)
-
+  
   # ----- fill list
   
   out <- conversion(1, udunits2::ud.convert(1, "t ha-1", "kg m-2"))  ## tC/ha -> kg/m2
   nc_var[[s + 1]] <- ncdf4::ncvar_def("AbvGrndWood", units = "kg C m-2", dim = list(lon, lat, t), missval = -999, 
-                                    longname = "Above ground woody biomass")
+                                      longname = "Above ground woody biomass")
   out <- conversion(2, umol2kg_C)  ## umol/m2 s-1 -> kg/m2 s-1
   nc_var[[s + 2]] <- ncdf4::ncvar_def("AutoResp", units = "kg C m-2 s-1", dim = list(lon, lat, t), missval = -999, 
-                                    longname = "Autotrophic Respiration")
+                                      longname = "Autotrophic Respiration")
   nc_var[[s + 3]] <- ncdf4::ncvar_def("CarbPools", units = "kg C m-2", dim = list(lon, lat, t), missval = -999, 
-                                    longname = "Size of each carbon pool")
+                                      longname = "Size of each carbon pool")
   nc_var[[s + 4]] <- ncdf4::ncvar_def("CO2CAS", units = "ppmv", dim = list(lon, lat, t), missval = -999, 
-                                    longname = "CO2CAS")
+                                      longname = "CO2CAS")
   nc_var[[s + 5]] <- ncdf4::ncvar_def("CropYield", units = "kg m-2", dim = list(lon, lat, t), missval = -999, 
-                                    longname = "Crop Yield")
+                                      longname = "Crop Yield")
   out <- conversion(6, yr2s)  ## kg C m-2 yr-1 -> kg C m-2 s-1
   nc_var[[s + 6]] <- ncdf4::ncvar_def("GPP", units = "kg C m-2 s-1", dim = list(lon, lat, t), missval = -999, 
-                                    longname = "Gross Primary Productivity")
+                                      longname = "Gross Primary Productivity")
   out <- conversion(7, yr2s)  ## kg C m-2 yr-1 -> kg C m-2 s-1
   nc_var[[s + 7]] <- ncdf4::ncvar_def("HeteroResp", units = "kg C m-2 s-1", dim = list(lon, lat, t), missval = -999, 
-                                    longname = "Heterotrophic Respiration")
+                                      longname = "Heterotrophic Respiration")
   out <- conversion(8, yr2s)  ## kg C m-2 yr-1 -> kg C m-2 s-1
   nc_var[[s + 8]] <-  ncdf4::ncvar_def("NEE", units = "kg C m-2 s-1", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Net Ecosystem Exchange")
+                                       longname = "Net Ecosystem Exchange")
   out <- conversion(9, yr2s)  ## kg C m-2 yr-1 -> kg C m-2 s-1
   nc_var[[s + 9]] <- ncdf4::ncvar_def("NPP", units = "kg C m-2 s-1", dim = list(lon, lat, t), missval = -999, 
-                                    longname = "Net Primary Productivity")
+                                      longname = "Net Primary Productivity")
   out <- conversion(10, yr2s)  ## kg C m-2 yr-1 -> kg C m-2 s-1
   nc_var[[s + 10]] <- ncdf4::ncvar_def("TotalResp", units = "kg C m-2 s-1", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Total Respiration")
+                                       longname = "Total Respiration")
   nc_var[[s + 11]] <- ncdf4::ncvar_def("TotLivBiom", units = "kg C m-2", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Total living biomass")
+                                       longname = "Total living biomass")
   nc_var[[s + 12]] <- ncdf4::ncvar_def("TotSoilCarb", units = "kg C m-2", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Total Soil Carbon")
+                                       longname = "Total Soil Carbon")
   nc_var[[s + 13]] <- ncdf4::ncvar_def("Fdepth", units = "m", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Frozen Thickness")
+                                       longname = "Frozen Thickness")
   nc_var[[s + 14]] <- ncdf4::ncvar_def("SnowDepth", units = "m", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Total snow depth")
+                                       longname = "Total snow depth")
   nc_var[[s + 15]] <- PEcAn.utils::mstmipvar("SnowFrac", lat, lon, t, zg) # not standard
   nc_var[[s + 16]] <- ncdf4::ncvar_def("Tdepth", units = "m", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Active Layer Thickness")
+                                       longname = "Active Layer Thickness")
   nc_var[[s + 17]] <- ncdf4::ncvar_def("CO2air", units = "umol mol-1", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Near surface CO2 concentration")
+                                       longname = "Near surface CO2 concentration")
   nc_var[[s + 18]] <- ncdf4::ncvar_def("LWdown", units = "W m-2", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Surface incident longwave radiation")
+                                       longname = "Surface incident longwave radiation")
   nc_var[[s + 19]] <- ncdf4::ncvar_def("Psurf", units = "Pa", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Surface pressure")
+                                       longname = "Surface pressure")
   nc_var[[s + 20]] <- ncdf4::ncvar_def("Qair", units = "kg kg-1", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Near surface specific humidity")
+                                       longname = "Near surface specific humidity")
   nc_var[[s + 21]] <- ncdf4::ncvar_def("Rainf", units = "kg m-2 s-1", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Rainfall rate")
+                                       longname = "Rainfall rate")
   nc_var[[s + 22]] <- ncdf4::ncvar_def("SWdown", units = "W m-2", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Surface incident shortwave radiation")
+                                       longname = "Surface incident shortwave radiation")
   out <- checkTemp(23)
   nc_var[[s + 23]] <- ncdf4::ncvar_def("Tair", units = "K", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Near surface air temperature")
+                                       longname = "Near surface air temperature")
   nc_var[[s + 24]] <- ncdf4::ncvar_def("Wind", units = "m s-1", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Near surface module of the wind")
+                                       longname = "Near surface module of the wind")
   nc_var[[s + 25]] <- ncdf4::ncvar_def("LWnet", units = "W m-2", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Net Longwave Radiation")
+                                       longname = "Net Longwave Radiation")
   nc_var[[s + 26]] <- ncdf4::ncvar_def("Qg", units = "W m-2", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Ground heat")
+                                       longname = "Ground heat")
   nc_var[[s + 27]] <- ncdf4::ncvar_def("Qh", units = "W m-2", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Sensible heat")
+                                       longname = "Sensible heat")
   out <- conversion(28, PEcAn.data.atmosphere::get.lv())  ## kg m-2 s-1 -> W m-2
   nc_var[[s + 28]] <- ncdf4::ncvar_def("Qle", units = "W m-2", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Latent heat")
+                                       longname = "Latent heat")
   nc_var[[s + 29]] <- ncdf4::ncvar_def("SWnet", units = "W m-2", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Net shortwave radiation")
+                                       longname = "Net shortwave radiation")
   nc_var[[s + 30]] <- PEcAn.utils::mstmipvar("RootMoist", lat, lon, t, zg)   # not standard
   nc_var[[s + 31]] <- ncdf4::ncvar_def("TVeg", units = "kg m-2 s-1", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Transpiration")
+                                       longname = "Transpiration")
   nc_var[[s + 32]] <- PEcAn.utils::mstmipvar("WaterTableD", lat, lon, t, zg) # not standard
-
+  
   nc_var[[s + 33]] <- ncdf4::ncvar_def("fPAR", units = "", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Absorbed fraction incoming PAR")
+                                       longname = "Absorbed fraction incoming PAR")
   nc_var[[s + 34]] <- ncdf4::ncvar_def("LAI", units = "m2 m-2", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Leaf Area Index")
+                                       longname = "Leaf Area Index")
   nc_var[[s + 35]] <- PEcAn.utils::mstmipvar("SMFrozFrac", lat, lon, t, zg)  # not standard
   nc_var[[s + 36]] <- PEcAn.utils::mstmipvar("SMLiqFrac", lat, lon, t, zg)   # not standard
   nc_var[[s + 37]] <- ncdf4::ncvar_def("SoilMoist", units = "kg m-2", dim = list(lon, lat, zg, t), missval = -999, 
-                                     longname = "Average Layer Soil Moisture")
+                                       longname = "Average Layer Soil Moisture")
   out <- checkTemp(38)
   nc_var[[s + 38]] <- ncdf4::ncvar_def("SoilTemp", units = "K", dim = list(lon, lat, zg, t), missval = -999, 
-                                     longname = "Average Layer Soil Temperature")
+                                       longname = "Average Layer Soil Temperature")
   nc_var[[s + 39]] <- ncdf4::ncvar_def("SoilWet", units = "", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Total Soil Wetness")
+                                       longname = "Total Soil Wetness")
   nc_var[[s + 40]] <- PEcAn.utils::mstmipvar("Albedo", lat, lon, t, zg)      # not standard
   out <- checkTemp(41)
   nc_var[[s + 41]] <- PEcAn.utils::mstmipvar("SnowT", lat, lon, t, zg)       # not standard
   nc_var[[s + 42]] <- ncdf4::ncvar_def("SWE", units = "kg m-2", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Snow Water Equivalent")
+                                       longname = "Snow Water Equivalent")
   out <- checkTemp(43)
   nc_var[[s + 43]] <- PEcAn.utils::mstmipvar("VegT", lat, lon, t, zg)        # not standard
   nc_var[[s + 44]] <- ncdf4::ncvar_def("Evap", units = "kg m-2 s-1", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Total Evaporation")
+                                       longname = "Total Evaporation")
   nc_var[[s + 45]] <- ncdf4::ncvar_def("Qs", units = "kg m-2 s-1", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Surface runoff")
+                                       longname = "Surface runoff")
   nc_var[[s + 46]] <- ncdf4::ncvar_def("Qsb", units = "kg m-2 s-1", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Subsurface runoff")
+                                       longname = "Subsurface runoff")
   out <- conversion(47, yr2s)  ## kg C m-2 yr-1 -> kg C m-2 s-1
   nc_var[[s + 47]] <- ncdf4::ncvar_def("SoilResp", units = "kg C m-2 s-1", dim = list(lon, lat, t), missval = -999, 
-                                    longname = "Soil Respiration")
+                                       longname = "Soil Respiration")
   nc_var[[s + 48]] <- ncdf4::ncvar_def("zRWU", units = "m", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Mean depth of uptake")
+                                       longname = "Mean depth of uptake")
   nc_var[[s + 49]] <- ncdf4::ncvar_def("LAI_Liana", units = "-", dim = list(lon, lat, t), missval = -999, 
-                                     longname = "Liana contribution to LAI")
+                                       longname = "Liana contribution to LAI")
+  nc_var[[s + 50]] <- ncdf4::ncvar_def("Transp_pft", units = "kg_w m-2 s-1", dim = list(lon, lat, t, pfts), missval = -999, 
+                                       longname = "Transpiration separated by pft")
+  nc_var[[s + 51]] <- ncdf4::ncvar_def("GPP_pft", units = "kg_C m-2 yr-1", dim = list(lon, lat, t, pfts), missval = -999, 
+                                       longname = "GPP separated by pft")
+  nc_var[[s + 52]] <- ncdf4::ncvar_def("NPP_pft", units = "kg_C m-2 yr-1", dim = list(lon, lat, t, pfts), missval = -999, 
+                                       longname = "NPP separated by pft")
+  nc_var[[s + 53]] <- ncdf4::ncvar_def("zRWU_pft", units = "m", dim = list(lon, lat, t, pfts), missval = -999, 
+                                       longname = "zRWU separated by pft")
   # Remove SLZ from output before finalizing list.  replace with time_bounds
   if(!is.null(out[["SLZ"]])){
     out[["SLZ"]] <- NULL
@@ -824,12 +868,12 @@ put_T_values <- function(yr, nc_var, out, lat, lon, begins, ends, ...){
   out_length <- length(out)
   out[[out_length + 1]] <- c(rbind(bounds[, 1], bounds[, 2]))
   nc_var[[s + (out_length + 1)]] <- ncdf4::ncvar_def(name="time_bounds", units='', 
-                                    longname = "history time interval endpoints", 
-                                    dim=list(time_interval,time = t), 
-                                    prec = "double")
+                                                     longname = "history time interval endpoints", 
+                                                     dim=list(time_interval,time = t), 
+                                                     prec = "double")
   
   return(list(nc_var = nc_var, out = out))
-
+  
 } # put_T_values
 
 
@@ -952,31 +996,31 @@ read_E_files <- function(yr, yfiles, efiles, outdir, start_date, end_date, pft_n
     # Now can get number of plants per cohort, which will be used for weighting. Note that area may have been (often/always is?) a proportion of total site area, rather than an absolute measure. In which case this nplant is a tiny and meaningless number in terms of actual number of plants. But that doesn't matter for weighting purposes. 
     nplant <- plant.dens * patch.area
     
-
+    
     # Not all ED cohort variables are in per-plant units. This code would not be applicable to them without modification.
     # However, it does handle two special cases. For NPLANT, it performs no weighting, but simply sums over cohorts in the PFT. 
     # For MMEAN_MORT_RATE_CO, it first sums over columns representing different mortality types first, then proceeds with weighting. 
-
-      for (k in 1:npft) {
-        ind <- (pft == pfts[k])
-        
-        if (any(ind)) {
-          for (varname in varnames) {
-            if(varname == "NPLANT") {
-              # Return the total number of plants in the bin
-              out$NPLANT[i,k] <- sum(nplant[ind])
-            } else if (varname == "MMEAN_MORT_RATE_CO") {
-              # Sum over all columns 
-              mort <- apply(ed.dat$MMEAN_MORT_RATE_CO[[i]][ind,, drop=F], 1, sum, na.rm = T)
-              out$MMEAN_MORT_RATE_CO[i,k] <- sum(mort * nplant[ind]) / sum(nplant[ind])
-            } else {
-              # For all others, just get mean weighted by nplant
-              out[[varname]][i,k] <- sum(ed.dat[[varname]][[i]][ind] * nplant[ind]) / sum(nplant[ind])
-            }
-            dimnames(out[[varname]]) <- list(months = times[ysel], pft = pft_names)
+    
+    for (k in 1:npft) {
+      ind <- (pft == pfts[k])
+      
+      if (any(ind)) {
+        for (varname in varnames) {
+          if(varname == "NPLANT") {
+            # Return the total number of plants in the bin
+            out$NPLANT[i,k] <- sum(nplant[ind])
+          } else if (varname == "MMEAN_MORT_RATE_CO") {
+            # Sum over all columns 
+            mort <- apply(ed.dat$MMEAN_MORT_RATE_CO[[i]][ind,, drop=F], 1, sum, na.rm = T)
+            out$MMEAN_MORT_RATE_CO[i,k] <- sum(mort * nplant[ind]) / sum(nplant[ind])
+          } else {
+            # For all others, just get mean weighted by nplant
+            out[[varname]][i,k] <- sum(ed.dat[[varname]][[i]][ind] * nplant[ind]) / sum(nplant[ind])
           }
+          dimnames(out[[varname]]) <- list(months = times[ysel], pft = pft_names)
         }
       }
+    }
     
   }
   
@@ -1046,18 +1090,18 @@ put_E_values <- function(yr, nc_var, out, lat, lon, begins, ends, pft_names, ...
   # e.g. when NEE is pft-specific for some model output it will be the 4th dimension
   # lon / lat / time / pft 
   # from read.output's perspective, dimension of pft will be the same for NEE there and DBH here
-
+  
   
   nc_var[[s + 1]] <- ncdf4::ncvar_def("DBH", units = "cm", dim = list(lon, lat, t, p), missval = -999, 
-                                   longname = "Diameter at breast height")
+                                      longname = "Diameter at breast height")
   nc_var[[s + 2]] <- ncdf4::ncvar_def("DDBH_DT", units = "cm yr-1", dim = list(lon, lat, t, p), missval = -999, 
-                                   longname = "Rate of change in dbh")
+                                      longname = "Rate of change in dbh")
   nc_var[[s + 3]] <- ncdf4::ncvar_def("NPLANT", units = "plant m-2", dim = list(lon, lat, t, p), missval = -999, 
-                                   longname = "Plant density")
+                                      longname = "Plant density")
   # longname of this variable will be parsed by read.output
   # so that read.output has a way of accessing PFT names
   nc_var[[s + 4]] <- ncdf4::ncvar_def("PFT", units = "", dim = list(p),  
-                                   longname = paste(pft_names, collapse=",")) 
+                                      longname = paste(pft_names, collapse=",")) 
   out_length <- length(out)
   out[[out_length + 1]] <- c(rbind(bounds[, 1], bounds[, 2]))
   nc_var[[s + 5]] <- ncdf4::ncvar_def(name = "dtime_bounds", units = "", 
