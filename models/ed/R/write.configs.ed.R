@@ -80,6 +80,25 @@ convert.samples.ED <- function(trait.samples) {
       
     }  ## End dark_respiration_factor loop
   }  ## End Vcmax  
+
+  # All psi traits need to be negative
+  for(n in c("leaf_psi_tlp", "wood_psi_tlp", "leaf_psi_min", "wood_psi_min", "wood_psi50","stoma_psi_b","b1Rd")){
+    if(n %in% names(trait.samples)){
+      trait.samples[[n]] <- -as.numeric(trait.samples[[n]])
+    }
+  }
+  
+  
+  ## convert wood_water_cap / 1000
+  if(n %in% names(trait.samples)){
+    trait.samples[["wood_water_cap"]] <- as.numeric(trait.samples[["wood_water_cap"]])/1000
+  }
+  
+  ## convert leaf_water_cap / 1000
+  if(n %in% names(trait.samples)){
+    trait.samples[["leaf_water_cap"]] <- as.numeric(trait.samples[["leaf_water_cap"]])/1000
+  }
+
   # for debugging conversions save(trait.samples, file = file.path(settings$outdir,
   # 'trait.samples.Rdata'))
   
