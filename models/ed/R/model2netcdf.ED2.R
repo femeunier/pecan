@@ -505,9 +505,12 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, pft_n
     vars <- c('FMEAN_TRANSP_PFT','FMEAN_GPP_PFT','FMEAN_NPP_PFT','FMEAN_zRWU_PFT')    
     
     for (ivar in seq(vars)){
-      temp <- getHdf5Data(ncT, vars[ivar])
-      temp <- temp[sort(pft_num),]
-      out <- add(temp, 49 + ivar, row, yr)  ## PFT transp 
+	temp <- getHdf5Data(ncT, vars[ivar])
+	temp2 = matrix(NA,length(pft_num),dim(temp)[2])
+	for (ipft in seq(1,length(pft_num))){
+	  temp2[ipft,] <- temp[sort(pft_num), ]
+	}
+	out <- add(temp2, 49 + ivar, row, yr)
     }
     
     
@@ -658,9 +661,12 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, pft_n
     vars <- c('FMEAN_TRANSP_PFT','FMEAN_GPP_PFT','FMEAN_NPP_PFT','FMEAN_zRWU_PFT')    
     
     for (ivar in seq(vars)){
-      temp <- getHdf5Data(ncT, vars[ivar])
-      temp <- temp[sort(pft_num),]
-      out <- add(temp, 49 + ivar, row, yr)  ## PFT transp 
+	temp <- getHdf5Data(ncT, vars[ivar])
+	temp2 = matrix(NA,length(pft_num),dim(temp)[2])
+	for (ipft in seq(1,length(pft_num))){
+	  temp2[ipft,] <- temp[sort(pft_num), ]
+	}
+	out <- add(temp2, 49 + ivar, row, yr)
     }
 
     out$SLZ <- slzdata
