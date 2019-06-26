@@ -59,7 +59,7 @@ convert.samples.ED <- function(trait.samples) {
   
   if ("Vcmax" %in% names(trait.samples)) {
     vcmax <- as.numeric(trait.samples[["Vcmax"]])
-    trait.samples[["Vcmax"]] <- arrhenius.scaling(vcmax, old.temp = 25, new.temp = 15)
+    trait.samples[["Vcmax"]] <- vcmax/(2.4*arrhenius.scaling(1, old.temp = 25, new.temp = 15))
     # write as Vm0 for version compatibility (Vm0 = Vcmax @ 15C)
     trait.samples[["Vm0"]] <- trait.samples[["Vcmax"]]
     
