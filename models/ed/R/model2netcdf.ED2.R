@@ -664,7 +664,7 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, pft_n
 	temp <- getHdf5Data(ncT, vars[ivar])
 	temp2 = matrix(NA,length(pft_num),dim(temp)[2])
 	for (ipft in seq(1,length(pft_num))){
-	  temp2[ipft,] <- temp[sort(pft_num), ]
+	  temp2[ipft,] <- temp[sort(pft_num)[ipft], ]
 	}
 	out <- add(temp2, 49 + ivar, row, yr)
     }
