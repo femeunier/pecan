@@ -239,8 +239,21 @@ read.output <- function(runid, outdir,
           # the variable *PFT* in standard netcdfs has *pft* dimension, 
           # numbers as values, and full pft names as an attribute
           # parse pft names and match the requested
-          pft.string <- ncdf4::ncatt_get(nc, "PFT", verbose = verbose)
-          pft.ind <- strsplit(pft.string$long_name, ",")[[1]] == pft.name
+          # pft.string <- ncdf4::ncatt_get(nc, "PFT", verbose = verbose)
+          # pft.ind <- strsplit(pft.string$long_name, ",")[[1]] == pft.name
+	  
+          pft.dim <- ifelse("PFT" %in% names(nc$dim),"PFT","pft")
+	  pft.string <- ncdf4::ncatt_get(nc, pft.dim,verbose = verbose)
+	  pft.ind <- strsplit(pft.string$long_name,",")[[1]] == pft.name
+
+	  if (length(pft.ind)==0){pft.ind = FALSE} # To solve for ensemble outputs FM
+	  else if(!pft.ind){
+	    data(pftmapping, package = "PEcAn.ED2")
+	    pft_num <- pftmapping$ED[pftmapping$PEcAn == pft.name] 
+	    pft.ind <- sort(nc$dim[['pft']]$vals)==pft_num
+	  }
+
+
           # dimensions can differ from model to model or run to run
           # there might be other cases that are not covered here
           dim.check <- length(dim(newresult))

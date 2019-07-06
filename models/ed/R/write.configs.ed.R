@@ -59,7 +59,7 @@ convert.samples.ED <- function(trait.samples) {
   
   if ("Vcmax" %in% names(trait.samples)) {
     vcmax <- as.numeric(trait.samples[["Vcmax"]])
-    trait.samples[["Vcmax"]] <- vcmax/(2.4*arrhenius.scaling(1, old.temp = 25, new.temp = 15))
+    trait.samples[["Vcmax"]] <- vcmax/(2.4)
     # write as Vm0 for version compatibility (Vm0 = Vcmax @ 15C)
     trait.samples[["Vm0"]] <- trait.samples[["Vcmax"]]
     
@@ -90,12 +90,12 @@ convert.samples.ED <- function(trait.samples) {
   
   
   ## convert wood_water_cap / 1000
-  if(n %in% names(trait.samples)){
+  if("wood_water_cap" %in% names(trait.samples)){
     trait.samples[["wood_water_cap"]] <- as.numeric(trait.samples[["wood_water_cap"]])/1000
   }
   
   ## convert leaf_water_cap / 1000
-  if(n %in% names(trait.samples)){
+  if("leaf_water_cap" %in% names(trait.samples)){
     trait.samples[["leaf_water_cap"]] <- as.numeric(trait.samples[["leaf_water_cap"]])/1000
   }
 
