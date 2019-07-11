@@ -502,7 +502,7 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, pft_n
     out <- add(getHdf5Data(ncT, "FMEAN_LAI_LIANA_PY"), 49, row, yr)  ## Liana_LAI
     
     # Var with pft dimension
-    vars <- c('FMEAN_TRANSP_PFT','FMEAN_GPP_PFT','FMEAN_NPP_PFT','FMEAN_zRWU_PFT')    
+    vars <- c('FMEAN_TRANSP_PFT','FMEAN_GPP_PFT','FMEAN_NPP_PFT','FMEAN_zRWU_PFT','FMEAN_FS_OPEN_PFT','FMEAN_LEAF_TEMP_PFT','FMEAN_LEAF_PSI_PFT')    
     
     for (ivar in seq(vars)){
 	temp <- getHdf5Data(ncT, vars[ivar])
@@ -655,10 +655,9 @@ read_T_files <- function(yr, yfiles, tfiles, outdir, start_date, end_date, pft_n
                  getHdf5Data(ncT, "AVG_HTROPH_RESP"), 47, row, yr)  ## SoilResp
     out <- add(getHdf5Data(ncT, "FMEAN_ZRWU_PY"), 48, row, yr)  ## Liana_LAI  
     out <- add(getHdf5Data(ncT, "FMEAN_LAI_LIANA_PY"), 49, row, yr)  ## Liana_LAI  
-    out <- add(getHdf5Data(ncT, "FMEAN_TRANSP_PFT"), 50, row, yr)  ## PFT transp 
 
     # Var with pft dimension
-    vars <- c('FMEAN_TRANSP_PFT','FMEAN_GPP_PFT','FMEAN_NPP_PFT','FMEAN_zRWU_PFT')    
+    vars <- c('FMEAN_TRANSP_PFT','FMEAN_GPP_PFT','FMEAN_NPP_PFT','FMEAN_zRWU_PFT','FMEAN_FS_OPEN_PFT','FMEAN_LEAF_TEMP_PFT','FMEAN_LEAF_PSI_PFT')    
     
     for (ivar in seq(vars)){
 	temp <- getHdf5Data(ncT, vars[ivar])
@@ -867,6 +866,13 @@ put_T_values <- function(yr, nc_var, out, lat, lon, begins, ends, pft_names, ...
                                        longname = "NPP separated by pft")
   nc_var[[s + 53]] <- ncdf4::ncvar_def("zRWU_pft", units = "m", dim = list(lon, lat, t, pfts), missval = -999, 
                                        longname = "zRWU separated by pft")
+  nc_var[[s + 54]] <- ncdf4::ncvar_def("fs_open_pft", units = "-", dim = list(lon, lat, t, pfts), missval = -999, 
+                                       longname = "fs_open separated by pft")
+  nc_var[[s + 55]] <- ncdf4::ncvar_def("VegT_pft", units = "K", dim = list(lon, lat, t, pfts), missval = -999, 
+                                       longname = "VegT separated by pft")
+  nc_var[[s + 56]] <- ncdf4::ncvar_def("Leaf_psi_pft", units = "m", dim = list(lon, lat, t, pfts), missval = -999, 
+                                       longname = "Leaf water potential separated by pft")
+    
   # Remove SLZ from output before finalizing list.  replace with time_bounds
   if(!is.null(out[["SLZ"]])){
     out[["SLZ"]] <- NULL
