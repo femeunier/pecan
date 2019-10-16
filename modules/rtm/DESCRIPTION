@@ -17,7 +17,6 @@ Imports:
     MASS,
     coda,
     lubridate (>= 1.6.0),
-    PEcAn.assim.batch,
     BayesianTools
 Suggests:
     minpack.lm,
