@@ -97,3 +97,9 @@ Liana_BCI;17
 PFT_BCI_hydro_Early;2
 PFT_BCI_hydro_Late;4
 Liana_BCI_nospecies;17
+Liana_BCI_Kmaxonly;17
+Liana_BCI_Kmaxonly_nospecies;17
+Liana_optical;17
+Tree_optical;3
+Liana_optical_nospecies;17
+Tree_optical_nospecies;3
