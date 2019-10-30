@@ -15,6 +15,10 @@
 ##'                                statname=c('SD', 'MSE', 'LSD', 'HSD', 'MSD'))
 ##' transformstats(statdf)
 transformstats <- function(data) {
+
+if (!is.factor(data$statname)) 
+  data$statname <- as.factor(data$statname)
+
   if (!"SE" %in% levels(data$statname)) {
     data$statname <- factor(data$statname, levels = c(levels(data$statname), "SE"))
   }

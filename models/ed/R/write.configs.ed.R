@@ -57,6 +57,11 @@ convert.samples.ED <- function(trait.samples) {
     trait.samples[["root_respiration_factor"]] <- trait.samples[["root_respiration_rate"]]
   }
   
+  if ("orient_factor_shifted" %in% names(trait.samples)) {
+    trait.samples[["orient_factor"]] <- as.numeric(trait.samples[["orient_factor_shifted"]]) - 1
+    trait.samples[["orient_factor_shifted"]] <- NULL
+  }
+	
   if ("Vcmax" %in% names(trait.samples)) {
     vcmax <- as.numeric(trait.samples[["Vcmax"]])
     trait.samples[["Vcmax"]] <- vcmax/(2.4)
@@ -482,7 +487,7 @@ write.config.xml.ED2 <- function(settings, trait.values, defaults = settings$con
   ed2_package_data <- data(package="PEcAn.ED2")
   histfile <- paste0("history.r", settings$model$revision) # set history file name to look for in ed2_package_data
   if (histfile %in% ed2_package_data$results[, "Item"]) {
-    PEcAn.logger::logger.debug(paste0("--- Using ED2 History File: ", histfile))
+    #PEcAn.logger::logger.debug(paste0("--- Using ED2 History File: ", histfile))
     data(list=histfile, package = 'PEcAn.ED2')
     edhistory <- get(histfile)
   } else {
@@ -533,11 +538,11 @@ write.config.xml.ED2 <- function(settings, trait.values, defaults = settings$con
 
       if (is.null(pft.number)) {
         pft.number <- pftmapping$ED[which(pftmapping == pft)]
-        PEcAn.logger::logger.debug(glue::glue(
-          "Automatically assigning PFT `{pft}` number `{pft.number}` ",
-          "based on `pftmapping`. If you want to avoid this behavior, ",
-          "set the PFT number explicitly via the `<ed2_pft_number>` XML tag."
-        ))
+        #PEcAn.logger::logger.debug(glue::glue(
+        #  "Automatically assigning PFT `{pft}` number `{pft.number}` ",
+        #  "based on `pftmapping`. If you want to avoid this behavior, ",
+        #  "set the PFT number explicitly via the `<ed2_pft_number>` XML tag."
+        #))
       }
 
       if (grepl("soil", pft)) {

@@ -36,7 +36,7 @@
 ##'           variances    = c(a = 20, b=30, c = 10))
 ##' do.call(grid.arrange, c(plot_variance_decomposition(x), ncol = 4))
 plot_variance_decomposition <- function(plot.inputs, 
-                                        fontsize = list(title = 18, axis = 14),Col=matrix(1,length(plot.inputs$coef.vars))) {
+                                        fontsize = list(title = 18, axis = 14),Col=NULL) {
   theme_set(theme_classic() + theme(axis.text.x = element_text(size = fontsize$axis, vjust = -1),
                                     axis.text.y = element_blank(), axis.ticks = element_blank(), 
                                     axis.line = element_blank(), axis.title.x = element_blank(), 
@@ -47,11 +47,21 @@ plot_variance_decomposition <- function(plot.inputs,
 traits <- names(plot.inputs$variances)
 units <- as.character(trait.lookup(traits)$units)
 trait.labels <- as.character(trait.lookup(traits)$figid)
+
+if (!is.null(Col)){
+plot.data <- data.frame(trait.labels = ifelse(!is.na(trait.labels), 
+                                              trait.labels, traits), units = ifelse(!is.na(units), 
+                                                                                    units, ""), coef.vars = plot.inputs$coef.vars * 100, 
+                        elasticities = plot.inputs$elasticities, variances = plot.inputs$variances, 
+                        points = seq_along(traits) - 0.5,
+			Col = plot.inputs$PFT_all)
+} else {
 plot.data <- data.frame(trait.labels = ifelse(!is.na(trait.labels), 
                                               trait.labels, traits), units = ifelse(!is.na(units), 
                                                                                     units, ""), coef.vars = plot.inputs$coef.vars * 100, 
                         elasticities = plot.inputs$elasticities, variances = plot.inputs$variances, 
                         points = seq_along(traits) - 0.5)
+}
 plot.data <- plot.data[order(plot.data$variances, decreasing = FALSE), 
                        ]
 base.plot <- ggplot(plot.data) + coord_flip()
@@ -60,19 +70,19 @@ trait.plot <- base.plot + ggtitle("Parameter") + geom_text(aes(y = 1,
   scale_y_continuous(breaks = c(0, 0), limits = c(0, 1)) + 
   theme(axis.text.x = element_blank())
 
-if (length(unique(Col))>1){
+if (!is.null(Col)){
 
 cv.plot <- base.plot + ggtitle("CV (%)") + geom_pointrange(aes(x = points, 
-                                                               y = coef.vars, ymin = 0, ymax = 1.05*coef.vars,colour=C$PFT), size = 1.25,show.legend = FALSE) + 
-  theme(plot.title = element_text(size = fontsize$title)) + scale_color_manual(values=C$col)
+                                                               y = coef.vars, ymin = 0, ymax = 1.05*coef.vars,colour=Col), size = 1.25,show.legend = FALSE) + 
+  theme(plot.title = element_text(size = fontsize$title)) + scale_color_manual(values=Col)
 
 el.plot <- base.plot + ggtitle("Elasticity") + theme(plot.title = element_text(size = fontsize$title)) + 
   geom_pointrange(aes(x = points, y = elasticities, ymin = 0, 
-                      ymax = 1.05*elasticities,colour=C$PFT), size = 1.25,show.legend = FALSE) + scale_color_manual(values=C$col)
+                      ymax = 1.05*elasticities,colour=Col), size = 1.25,show.legend = FALSE) + scale_color_manual(values=Col)
 
 pv.plot <- base.plot + ggtitle("Variance") + theme(plot.title = element_text(size = fontsize$title)) + 
   geom_pointrange(aes(x = points, sqrt(variances), ymin = 0, 
-                      ymax = 1.05*sqrt(variances),colour=C$PFT), size = 1.25) + scale_color_manual(values=C$col)
+                      ymax = 1.05*sqrt(variances),colour=Col), size = 1.25) + scale_color_manual(values=Col)
 } else {
 
 cv.plot <- base.plot + ggtitle("CV (%)") + geom_pointrange(aes(x = points, 

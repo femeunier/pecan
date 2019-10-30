@@ -5,7 +5,7 @@
 \title{Variance Decomposition Plots}
 \usage{
 plot_variance_decomposition(plot.inputs, fontsize = list(title = 18, axis
-  = 14), Col = matrix(1, length(plot.inputs$coef.vars)))
+  = 14), Col = NULL)
 }
 \arguments{
 \item{fontsize}{list specifying the font size of the titles and axes of the graph}
