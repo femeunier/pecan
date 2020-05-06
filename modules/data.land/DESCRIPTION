@@ -23,7 +23,6 @@ Depends:
     dataone,
     PEcAn.DB,
     PEcAn.utils,
-    redland,
     sirt,
     sf
 Imports:
